@@ -1,6 +1,7 @@
 'use strict';
 
 (function(window) {
+  var location = window.location;
 
   function UrlHash(map, config) {
 
@@ -11,13 +12,16 @@
     }
 
     function getUrlState() {
-      return location.hash.substring(1).split('/').map(function(item) {
-        return parseFloat(item, 10);
-      });
+      var matches = location.hash.match(/(#|&)(ll=(.+?))(&|$)/);
+      if (matches.length > 3) {
+        return matches[3].split(',').map(function(i){
+          return parseFloat(i);
+        });
+      }
     }
 
     function setUrlState() {
-      location.hash = '#' + getMapState().join('/');
+      location.hash = '#ll=' + getMapState().join(',');
       return getUrlState();
     }
 
@@ -26,16 +30,16 @@
       center = map.getCenter();
 
       return [
-        map.getZoom(),
         center.lat(),
-        center.lng()
+        center.lng(),
+        map.getZoom()
       ];
     }
 
     function setMapState() {
       center = getUrlState();
-      map.setZoom(center[0]);
-      map.setCenter(new google.maps.LatLng(center[1], center[2]));
+      map.setZoom(center[2]);
+      map.setCenter(new google.maps.LatLng(center[0], center[1]));
     }
 
     google.maps.event.addListener(map, 'idle', function(e) {
